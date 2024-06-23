@@ -54,21 +54,20 @@
             statusBubble.className = `status-bubble ${statusClass}`;
         }
 
-        function checkServiceStatus(service) {
+        async function checkServiceStatus(service) {
             updateStatus(service, 'status-yellow'); // Set to yellow while checking
 
-            fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(service.url)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.contents) {
-                        updateStatus(service, 'status-green');
-                    } else {
-                        updateStatus(service, 'status-red');
-                    }
-                })
-                .catch(error => {
+            try {
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(service.url)}`);
+                const data = await response.json();
+                if (data.contents) {
+                    updateStatus(service, 'status-green');
+                } else {
                     updateStatus(service, 'status-red');
-                });
+                }
+            } catch (error) {
+                updateStatus(service, 'status-red');
+            }
         }
 
         function initStatusPage() {
@@ -76,15 +75,18 @@
             services.forEach(service => {
                 const statusItem = createStatusItem(service);
                 statusList.appendChild(statusItem);
-                checkServiceStatus(service);
             });
 
+            // Check status initially
+            checkAllServices();
+
             // Check status periodically (e.g., every 60 seconds)
-            setInterval(() => {
-                services.forEach(service => {
-                    checkServiceStatus(service);
-                });
-            }, 60000);
+            setInterval(checkAllServices, 60000);
+        }
+
+        function checkAllServices() {
+            const serviceChecks = services.map(service => checkServiceStatus(service));
+            Promise.all(serviceChecks);
         }
 
         document.addEventListener('DOMContentLoaded', initStatusPage);
