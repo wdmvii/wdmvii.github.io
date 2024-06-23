@@ -56,20 +56,33 @@
             background-color: #007bff;
             color: white;
         }
+        .countdown {
+            font-size: 0.9em;
+            font-weight: normal;
+        }
     </style>
 </head>
-<body>
-    <div class="container status-container">
+<body class="d-flex flex-column min-vh-100">
+    <div class="container status-container flex-grow-1">
         <h1 class="text-center mb-4">Uptime for <a href="https://wdmvii.com" target="_blank">wdmvii.com</a></h1>
+                <h6 class="text-center mb-4">Green - Operating | Yellow - Checking service status | Red - Service is down</h6>
         <div class="card shadow-sm">
             <div class="card-header bg-primary text-white">
                 Service Status
+                <span id="countdown" class="countdown float-right"></span>
             </div>
             <ul id="status-list" class="list-group list-group-flush">
                 <!-- Status items will be dynamically inserted here -->
             </ul>
         </div>
     </div>
+    <footer class="bg-white py-4 mt-auto">
+        <div class="container px-5">
+            <div class="row align-items-center justify-content-between flex-column flex-sm-row">
+                <div class="col-auto"><div class="small m-0">Everything made with 💖 by VII 📍 Hammond, LA.</div></div>
+            </div>
+        </div>
+    </footer>
 
     <script>
         const services = [
@@ -77,6 +90,7 @@
             { name: 'Blog', url: 'https://blog.wdmvii.com', maintenance: {0: "Investigating the issue..."}  },
             { name: 'MBG (Map Background Generator)', url: 'https://map.wdmvii.com', maintenance: {0: "Investigating the issue..."} }
         ];
+        const interval = 60000;
 
         function createStatusItem(service) {
             const listItem = document.createElement('li');
@@ -135,13 +149,30 @@
             // Check status initially
             checkAllServices();
 
-            // Check status periodically (e.g., every 60 seconds)
-            setInterval(checkAllServices, 60000);
+            // Start countdown and periodic checks
+            startCountdown(interval);
+            setInterval(checkAllServices, interval);
+            setInterval(() => startCountdown(interval), interval);
         }
 
         function checkAllServices() {
             const serviceChecks = services.map(service => checkServiceStatus(service));
             Promise.all(serviceChecks);
+        }
+
+        function startCountdown(duration) {
+            let remainingTime = duration / 1000;
+            const countdownElement = document.getElementById('countdown');
+            countdownElement.textContent = `Next check in: ${remainingTime}s`;
+
+            const countdownInterval = setInterval(() => {
+                remainingTime--;
+                countdownElement.textContent = `Next check in: ${remainingTime}s`;
+
+                if (remainingTime <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
         }
 
         document.addEventListener('DOMContentLoaded', initStatusPage);
