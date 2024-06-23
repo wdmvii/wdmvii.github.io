@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uptime Status Page</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .status-container {
+            margin-top: 50px;
+        }
+        .status-bubble {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .status-green {
+            background-color: green;
+        }
+        .status-yellow {
+            background-color: yellow;
+        }
+        .status-red {
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container status-container">
+        <h1 class="text-center">Uptime Status Page</h1>
+        <ul id="status-list" class="list-group">
+            <!-- Status items will be dynamically inserted here -->
+        </ul>
+    </div>
+
+    <script>
+        const services = [
+            { name: 'Google', url: 'https://www.google.com' },
+            { name: 'GitHub', url: 'https://www.github.com' },
+            { name: 'NonExistent', url: 'https://www.nonexistentwebsite.com' }
+        ];
+
+        function createStatusItem(service) {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.innerHTML = `<span class="status-bubble status-yellow" id="${service.name}-status"></span>${service.name}`;
+            return listItem;
+        }
+
+        function updateStatus(service, statusClass) {
+            const statusBubble = document.getElementById(`${service.name}-status`);
+            statusBubble.className = `status-bubble ${statusClass}`;
+        }
+
+        function checkServiceStatus(service) {
+            updateStatus(service, 'status-yellow'); // Set to yellow while checking
+
+            fetch(service.url)
+                .then(response => {
+                    if (response.ok) {
+                        updateStatus(service, 'status-green');
+                    } else {
+                        updateStatus(service, 'status-red');
+                    }
+                })
+                .catch(error => {
+                    updateStatus(service, 'status-red');
+                });
+        }
+
+        function initStatusPage() {
+            const statusList = document.getElementById('status-list');
+            services.forEach(service => {
+                const statusItem = createStatusItem(service);
+                statusList.appendChild(statusItem);
+                checkServiceStatus(service);
+            });
+
+            // Check status periodically (e.g., every 60 seconds)
+            setInterval(() => {
+                services.forEach(service => {
+                    checkServiceStatus(service);
+                });
+            }, 60000);
+        }
+
+        document.addEventListener('DOMContentLoaded', initStatusPage);
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
