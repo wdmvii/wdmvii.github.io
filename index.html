@@ -13,6 +13,7 @@
             margin-top: 50px;
         }
         .status-bubble {
+            position: relative;
             width: 20px;
             height: 20px;
             border-radius: 50%;
@@ -60,12 +61,33 @@
             font-size: 0.9em;
             font-weight: normal;
         }
+        .ping {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: ping 1s infinite;
+            z-index: 1;
+        }
+        @keyframes ping {
+            0% {
+                transform: translate(-50%, -50%) scale(0.7);
+                opacity: 1;
+            }
+            75%, 100% {
+                transform: translate(-50%, -50%) scale(1.7);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <div class="container status-container flex-grow-1">
         <h1 class="text-center mb-4">Uptime for <a href="https://wdmvii.com" target="_blank">wdmvii.com</a></h1>
-                <h6 class="text-center mb-4">Green - Operating | Yellow - Checking service status | Red - Service is down</h6>
+        <h6 class="text-center mb-4">Green - Operating | Yellow - Checking service status | Red - Service is down</h6>
         <div class="card shadow-sm">
             <div class="card-header bg-primary text-white">
                 Service Status
@@ -79,7 +101,7 @@
     <footer class="bg-white py-4 mt-auto">
         <div class="container px-5">
             <div class="row align-items-center justify-content-between flex-column flex-sm-row">
-                <div class="col-auto"><div class="small m-0">Everything made with 💖 by VII 📍 Hammond, LA.</div></div>
+                <div class="col-auto"><div class="small m-0">Made with 💖 by VII 📍 Hammond, LA.</div></div>
             </div>
         </div>
     </footer>
@@ -98,7 +120,9 @@
             listItem.innerHTML = `
                 <div class="status-item">
                     <div>
-                        <span class="status-bubble status-yellow" id="${service.name}-status"></span>
+                        <span class="status-bubble status-yellow" id="${service.name}-status">
+                            <span class="ping" style="background-color: rgba(255, 255, 0, 0.5);"></span>
+                        </span>
                         <span class="status-name">${service.name}</span>
                     </div>
                     <div>
@@ -112,8 +136,23 @@
 
         function updateStatus(service, statusClass, notes) {
             const statusBubble = document.getElementById(`${service.name}-status`);
-            const statusNotes = document.getElementById(`${service.name}-notes`);
             statusBubble.className = `status-bubble ${statusClass}`;
+            let pingColor;
+            switch (statusClass) {
+                case 'status-green':
+                    pingColor = 'rgba(0, 128, 0, 0.5)';
+                    break;
+                case 'status-yellow':
+                    pingColor = 'rgba(255, 255, 0, 0.5)';
+                    break;
+                case 'status-red':
+                    pingColor = 'rgba(255, 0, 0, 0.5)';
+                    break;
+                default:
+                    pingColor = 'rgba(0, 0, 0, 0.5)';
+            }
+            statusBubble.innerHTML = `<span class="ping" style="background-color: ${pingColor};"></span>`;
+            const statusNotes = document.getElementById(`${service.name}-notes`);
             statusNotes.innerHTML = notes || '';
         }
 
@@ -149,7 +188,6 @@
             // Check status initially
             checkAllServices();
 
-            // Start countdown and periodic checks
             startCountdown(interval);
             setInterval(checkAllServices, interval);
             setInterval(() => startCountdown(interval), interval);
