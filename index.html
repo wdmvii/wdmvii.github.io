@@ -37,9 +37,9 @@
 
     <script>
         const services = [
-            { name: 'Google', url: 'https://www.google.com' },
-            { name: 'GitHub', url: 'https://www.github.com' },
-            { name: 'NonExistent', url: 'https://www.nonexistentwebsite.com' }
+            { name: 'Portfolio', url: 'https://www.wdmvii.com' },
+            { name: 'Blog', url: 'https://blog.wdmvii.com' },
+            { name: 'MBG (Map Background Generator)', url: 'https://www.nonexistentwebsite.com' }
         ];
 
         function createStatusItem(service) {
@@ -57,9 +57,10 @@
         function checkServiceStatus(service) {
             updateStatus(service, 'status-yellow'); // Set to yellow while checking
 
-            fetch(service.url)
-                .then(response => {
-                    if (response.ok) {
+            fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(service.url)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.contents) {
                         updateStatus(service, 'status-green');
                     } else {
                         updateStatus(service, 'status-red');
