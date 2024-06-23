@@ -110,7 +110,7 @@
                 const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(service.url)}`);
                 const data = await response.json();
                 if (data.contents) {
-                    updateStatus(service, 'status-green', '');
+                    updateStatus(service, 'status-green', 'Normal');
                 } else {
                     const maintenanceHistory = service.maintenance 
                         ? Object.values(service.maintenance).map(item => `<li>${item}</li>`).join('') 
