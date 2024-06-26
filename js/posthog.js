@@ -38,40 +38,6 @@ window.self === window.top &&
     })(document, window.posthog || []),
     posthog.init("phc_hVOrSUy8hzjrqbcAPo17E7EwdAwkutiFHo1roNQudYw", { api_host: "https://app.posthog.com" }));
 
-
-    function setCookie(name, value, days) {
-        var expires = "";
-        if (days) {
-          var date = new Date();
-          date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-          expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "")  + expires + "; path=/; domain=.wdmvii.com";
-      }
-  
-      function getCookie(name) {
-        var nameEQ = name + "=";
-        var ca = document.cookie.split(';');
-        for(var i=0;i < ca.length;i++) {
-          var c = ca[i];
-          while (c.charAt(0)==' ') c = c.substring(1,c.length);
-          if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-        }
-        return null;
-      }
-  
-      function generateFingerprint() {
-        var navigatorInfo = window.navigator;
-        var screenInfo = window.screen;
-        var uid = navigatorInfo.mimeTypes.length;
-        uid += navigatorInfo.userAgent.replace(/\D+/g, '');
-        uid += navigatorInfo.plugins.length;
-        uid += screenInfo.height || '';
-        uid += screenInfo.width || '';
-        uid += screenInfo.pixelDepth || '';
-        return uid;
-      }
-  
       // Retrieve or generate a unique visitor ID
       var visitorId = getCookie('visitor_id');
       if (!visitorId) {
