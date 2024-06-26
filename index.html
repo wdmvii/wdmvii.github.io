@@ -29,7 +29,7 @@
         .status-red {
             background-color: red;
         }
-        .status-item {
+        .status-item, .api-status-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -40,11 +40,11 @@
             background-color: white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .status-name {
+        .status-name, .api-status-name {
             font-weight: bold;
             font-size: 1.1em;
         }
-        .status-notes {
+        .status-notes, .api-status-notes {
             margin-top: 10px;
             font-style: italic;
             color: #555;
@@ -82,6 +82,9 @@
                 opacity: 0;
             }
         }
+        .api-list {
+            padding-left: 30px;
+        }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -97,6 +100,14 @@
                 <!-- Status items will be dynamically inserted here -->
             </ul>
         </div>
+        <br>
+        <center>
+            <a href="https://github.com/r0aringthunder" target="_blank"><img src="./assets/github.svg" height="30" width="30"></a>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="https://x.com/wdmvii" target="_blank"><img src="./assets/x.svg" height="30" width="30"></a>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="https://linkedin.com/in/wdmvii" target="_blank"><img src="./assets/linkedin.svg" height="30" width="30"></a>
+        </center>
     </div>
     <footer class="bg-white py-4 mt-auto">
         <div class="container px-5">
@@ -108,34 +119,89 @@
 
     <script>
         const services = [
-            { name: 'Portfolio', url: 'https://www.wdmvii.com', maintenance: {0: "Investigating the issue..."} },
-            { name: 'Blog', url: 'https://blog.wdmvii.com', maintenance: {0: "Investigating the issue..."}  },
-            { name: 'MBG (Map Background Generator)', url: 'https://map.wdmvii.com', maintenance: {0: "Investigating the issue..."} }
+            {
+                name: 'Portfolio',
+                url: 'https://www.wdmvii.com',
+                maintenance: { 0: "Investigating the issue..." },
+                apis: [
+                    {
+                        name: '[WEB API] Gemini Nano',
+                        check: async () => (window.ai != null && (await window.ai.canCreateTextSession()) === "readily"), maintenance: { 0: "Please go to <a href='https://wdmvii.com/project' target='_blank'>wdmvii.com/projects</a> to read how to enable this web API" }
+                    }
+                ]
+            },
+            {
+                name: 'Blog',
+                url: 'https://blog.wdmvii.com',
+                maintenance: { 0: "Investigating the issue..." },
+                apis: [
+                    { name: '[API] Blogger', url: 'https://www.blogger.com/', home: 'https://www.blogger.com/', maintenance: { 0: "Investigating issues with Blogger..." } }
+                ]
+            },
+            {
+                name: 'MBG (Map Background Generator)',
+                url: 'https://map.wdmvii.com',
+                maintenance: { 0: "Investigating the issue..." },
+                apis: [
+                    { name: '[API] Google Maps', url: 'https://maps.googleapis.com/', home: 'https://maps.googleapis.com/', maintenance: { 0: "Investigating issues with Google Maps..." } },
+                    { name: '[API] Here', url: 'https://geocode.search.hereapi.com/', home: 'https://here.com/', maintenance: { 0: "Investigating issues with Here..." } },
+                    { name: '[API] TimeAPI', url: 'https://timeapi.io', home: 'https://timeapi.io/', maintenance: { 0: "Investigating issues with TimeAPI..." } },
+                    { name: '[API] 3Geonames', url: 'https://api.3geonames.org', home: 'https://3geonames.org/', maintenance: { 0: "Investigating issues with 3Geonames..." } }
+                ]
+            }
         ];
         const interval = 60000;
 
         function createStatusItem(service) {
+            const sanitizedServiceName = service.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item';
+            const apiCollapseId = `${sanitizedServiceName}-api-list`;
             listItem.innerHTML = `
                 <div class="status-item">
                     <div>
-                        <span class="status-bubble status-yellow" id="${service.name}-status">
+                        <span class="status-bubble status-yellow" id="${sanitizedServiceName}-status">
                             <span class="ping" style="background-color: rgba(255, 255, 0, 0.5);"></span>
                         </span>
                         <span class="status-name">${service.name}</span>
                     </div>
                     <div>
                         <a href="${service.url}" target="_blank" class="btn btn-sm btn-outline-primary">Visit</a>
+                        ${service.apis ? `<button class="btn btn-sm btn-outline-secondary" type="button" data-toggle="collapse" data-target="#${apiCollapseId}" aria-expanded="false" aria-controls="${apiCollapseId}">
+                            List APIs
+                        </button>` : ''}
                     </div>
                 </div>
-                <div class="status-notes" id="${service.name}-notes"></div>
+                <div class="status-notes" id="${sanitizedServiceName}-notes"></div>
+                ${service.apis ? `<div class="collapse" id="${apiCollapseId}"><ul id="${apiCollapseId}-list" class="list-group api-list"></ul></div>` : ''}
+            `;
+            return listItem;
+        }
+
+        function createAPIStatusItem(service, api) {
+            const sanitizedServiceName = service.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
+            const sanitizedApiName = api.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.innerHTML = `
+                <div class="api-status-item">
+                    <div>
+                        <span class="status-bubble status-yellow" id="${sanitizedServiceName}-${sanitizedApiName}-status">
+                            <span class="ping" style="background-color: rgba(255, 255, 0, 0.5);"></span>
+                        </span>
+                        <span class="api-status-name">${api.name}</span>
+                    </div>
+                    <div>
+                        ${api.home ? `<a href="${api.home}" target="_blank" class="btn btn-sm btn-outline-primary">Visit</a>` : ''}
+                    </div>
+                </div>
+                <div class="api-status-notes" id="${sanitizedServiceName}-${sanitizedApiName}-notes"></div>
             `;
             return listItem;
         }
 
         function updateStatus(service, statusClass, notes) {
-            const statusBubble = document.getElementById(`${service.name}-status`);
+            const statusBubble = document.getElementById(`${service.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-')}-status`);
             statusBubble.className = `status-bubble ${statusClass}`;
             let pingColor;
             switch (statusClass) {
@@ -152,7 +218,29 @@
                     pingColor = 'rgba(0, 0, 0, 0.5)';
             }
             statusBubble.innerHTML = `<span class="ping" style="background-color: ${pingColor};"></span>`;
-            const statusNotes = document.getElementById(`${service.name}-notes`);
+            const statusNotes = document.getElementById(`${service.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-')}-notes`);
+            statusNotes.innerHTML = notes || '';
+        }
+
+        function updateAPIStatus(service, api, statusClass, notes) {
+            const statusBubble = document.getElementById(`${service.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-')}-${api.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-')}-status`);
+            statusBubble.className = `status-bubble ${statusClass}`;
+            let pingColor;
+            switch (statusClass) {
+                case 'status-green':
+                    pingColor = 'rgba(0, 128, 0, 0.5)';
+                    break;
+                case 'status-yellow':
+                    pingColor = 'rgba(255, 255, 0, 0.5)';
+                    break;
+                case 'status-red':
+                    pingColor = 'rgba(255, 0, 0, 0.5)';
+                    break;
+                default:
+                    pingColor = 'rgba(0, 0, 0, 0.5)';
+            }
+            statusBubble.innerHTML = `<span class="ping" style="background-color: ${pingColor};"></span>`;
+            const statusNotes = document.getElementById(`${service.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-')}-${api.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-')}-notes`);
             statusNotes.innerHTML = notes || '';
         }
 
@@ -163,7 +251,7 @@
                 const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(service.url)}`);
                 const data = await response.json();
                 if (data.contents) {
-                    updateStatus(service, 'status-green', 'Normal');
+                    updateStatus(service, 'status-green', '');
                 } else {
                     const maintenanceHistory = service.maintenance 
                         ? Object.values(service.maintenance).map(item => `<li>${item}</li>`).join('') 
@@ -176,6 +264,38 @@
                     : '';
                 updateStatus(service, 'status-red', `(Service is down) <ul>${maintenanceHistory}</ul> (error: ${error.message}).`);
             }
+
+            if (service.apis) {
+                service.apis.forEach(api => checkAPIStatus(service, api));
+            }
+        }
+
+        async function checkAPIStatus(service, api) {
+            updateAPIStatus(service, api, 'status-yellow', 'Checking status...'); // Set to yellow while checking
+
+            try {
+                let status;
+                if (api.check) {
+                    status = await api.check();
+                } else {
+                    const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(api.url)}`);
+                    const data = await response.json();
+                    status = !!data.contents;
+                }
+                if (status) {
+                    updateAPIStatus(service, api, 'status-green', '');
+                } else {
+                    const maintenanceHistory = api.maintenance 
+                        ? Object.values(api.maintenance).map(item => `<li>${item}</li>`).join('') 
+                        : '';
+                    updateAPIStatus(service, api, 'status-red', `(API is down) <ul>${maintenanceHistory}</ul>`);
+                }
+            } catch (error) {
+                const maintenanceHistory = api.maintenance 
+                    ? Object.values(api.maintenance).map(item => `<li>${item}</li>`).join('') 
+                    : '';
+                updateAPIStatus(service, api, 'status-red', `(API is down) <ul>${maintenanceHistory}</ul> (error: ${error.message}).`);
+            }
         }
 
         function initStatusPage() {
@@ -183,6 +303,15 @@
             services.forEach(service => {
                 const statusItem = createStatusItem(service);
                 statusList.appendChild(statusItem);
+
+                if (service.apis) {
+                    const sanitizedServiceName = service.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
+                    const apiList = document.getElementById(`${sanitizedServiceName}-api-list-list`);
+                    service.apis.forEach(api => {
+                        const apiStatusItem = createAPIStatusItem(service, api);
+                        apiList.appendChild(apiStatusItem);
+                    });
+                }
             });
 
             // Check status initially
@@ -216,7 +345,8 @@
         document.addEventListener('DOMContentLoaded', initStatusPage);
     </script>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="./js/posthog.js"></script>
 </body>
 </html>
